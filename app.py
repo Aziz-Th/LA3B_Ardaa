@@ -1,68 +1,63 @@
-from contextlib import asynccontextmanager
-from os import getenv
-import ngrok
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams
-import numpy as np
 from sentence_transformers import SentenceTransformer
 import meilisearch
 import pandas as pd
 from transformers import AutoModelForSequenceClassification
-from pyngrok import ngrok
-# import ngrok
-from loguru import logger
+import os
+from dotenv import load_dotenv
+from ibm_watsonx_ai.foundation_models import Model
 
 
+load_dotenv()  # Load environment variables from .env file
 
-NGROK_AUTH_TOKEN = "2oZMuTVrnzCKkljMQTzTYsa8h5i_6ZRYAREwsv7BVnxVHrMqQ"
-APPLICATION_PORT = 8000
-NGROK_TIMEOUT = 30  # Add timeout setting
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    try:
-        logger.info("Setting up Ngrok Tunnel")
-        ngrok.set_auth_token(NGROK_AUTH_TOKEN)
-        tunnel = ngrok.connect(
-            addr=APPLICATION_PORT,
-            proto="http",
-            bind_tls=True  # Force HTTPS
-        )
-        logger.info(f"Ngrok tunnel established at: {tunnel.url()}")
-    except Exception as e:
-        logger.error(f"Failed to establish ngrok tunnel: {e}")
-        logger.warning("Continuing without ngrok tunnel")
+def get_credentials():
+    return {
+        "url": os.getenv("IBM_CLOUD_URL"),  # Fetch URL from environment variable
+        "apikey": os.getenv("IBM_CLOUD_APIKEY")  # Fetch API key from environment variable
+    }
+model_id = "sdaia/allam-1-13b-instruct"
+project_id = "c7f6c5ed-b85a-45a0-8983-28d25590308f"
+
+parameters = {
+    "decoding_method": "greedy",
+    "max_new_tokens": 900,
+    "repetition_penalty": 1
+}
+
+model = Model(
+	model_id = model_id,
+	params = parameters,
+	credentials = get_credentials(),
+	project_id = project_id,
+	)
     
-    yield
-    
-    try:
-        logger.info("Tearing Down Ngrok Tunnel")
-        ngrok.disconnect()
-    except Exception as e:
-        logger.error(f"Error disconnecting ngrok: {e}")
+# init FastAPI
+app = FastAPI()
 
-app = FastAPI(lifespan=lifespan)
-
-# api: 3727c3c6c33d7a843a9d02c6152df6fed8c71dcd18692da49b3bda3610ffbf4c
-client = meilisearch.Client('https://ms-4a119447407f-14957.fra.meilisearch.io', '53757b109142eced370db575ea272954dceebabb', timeout=10)
+# init meilisearch
+client = meilisearch.Client(
+    os.getenv('MEILI_URL'),  # Use environment variable for MeiliSearch URL
+    os.getenv('MEILI_API_KEY'),  # Use environment variable for MeiliSearch API key
+    timeout=10
+)
 meili_index = client.index('my_collection_scalar')
 
+# embedding model
 embedding_model = SentenceTransformer('nomic-ai/nomic-embed-text-v1',trust_remote_code=True)
 
-
+# init qdrant
 qdrant_client = QdrantClient(
-        url="https://29dd6193-eeca-402b-bb85-d914460fe045.us-east4-0.gcp.cloud.qdrant.io:6333", 
-        api_key="hU-wYT8hVP8Krr8npSVUSmzG2DMl9RnWY3adnXXd3hYihl4zXO8cnw",
+        url=os.getenv("QDRANT_URL"),
+        api_key=os.getenv("QDRANT_API_KEY"),
     )
+
 collection_name = "poems"
-# qdrant_client.recreate_collection(
-#         collection_name=collection_name,
-#         vectors_config=VectorParams(size=768, distance=Distance.COSINE)
-#     )
+
 
 
 # Initialize Meilisearch index settings
@@ -135,7 +130,6 @@ prompt_input = """<|start_header_id|>system<|end_header_id|>
 """
 
 
-# without adjacent rows
 def search(query):
     query_embedding = embedding_model.encode([query])[0]
 
@@ -161,22 +155,20 @@ def search(query):
 
     return combined_results
 
+# main general function
 def response_to_user(question):
+
     # Perform the search and filter valid results
     results = search(question)
-
-    print("results",results)
     filtered_results = [item for item in results if isinstance(item, dict) and "verse" in item]
-    print("filtered",filtered_results)
-    # Create a DataFrame and proceed without conditional checks
     results_df = pd.DataFrame(filtered_results)
-    print(results_df)
+    
 
     # Create sentence pairs and compute scores if there are results; otherwise, use defaults
     sentence_pairs = [[question, doc["verse"]] for doc in results_df.to_dict(orient="records")]
-    print("sentence:",sentence_pairs)
     scores = reranker_model.compute_score(sentence_pairs, max_length=1024)
-    print("scores",scores)
+
+
     # Check if none of the scores are higher than 0.4
     if all(score <= 0.2 for score in scores):
         return """شعر العرضة هو فن أدائي تقليدي من المملكة العربية السعودية، يتميز بإيقاعاته الحماسية وكلماته القوية. يعتبر شعر العرضة جزءاً هاماً من التراث الشعبي السعودي ويعكس تاريخ وثقافة المملكة.
@@ -184,12 +176,15 @@ def response_to_user(question):
                   يبدو أنه لم يتم توفير بيت شعري من العرضة محدد للشرح. إذا كنت ترغب في شرح بيت شعري معين، يرجى تزويدي بالبيت الشعري وسأقوم بشرحه لك بالتفصيل.
 
                   فلا تتردد في طرح سؤالك وسأكون سعيداً بمساعدتك"""
+    
 
     results_df["score"] = scores
     results_df_sorted = results_df.sort_values("score", ascending=False)
 
     best_poem = results_df_sorted.iloc[0]['verse']
     best_poem_meaning = results_df_sorted.iloc[0]['meaning']
+
+
 
     prompt_template = f"""<|start_header_id|>system<|end_header_id|>
     انت خبير في شعر العرضة تقوم بشرح معانيه.
@@ -200,64 +195,29 @@ def response_to_user(question):
     البيت الشعري: {best_poem},  معنى البيت الشعري: {best_poem_meaning},  سؤال المستخدم: {question}.
     <|eot_id|><|start_header_id|>assistant<|end_header_id|>"""
 
+
     generated_response = model.generate_text(prompt=prompt_template, guardrails=False)
+
 
     return generated_response
 
+
+# main endpoint
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
 
-# -----------------
-
-
-# -------------------
-
+    # extract payload
     question = request.message
 
+    # run main function
     response = response_to_user(question)
-    print(response)
     
-
-
+    # return to client
     return {
         "response": response
     }
 
-# Optional: Add a test endpoint
-@app.get("/api/test")
-async def test():
-    return {"status": "API is working!"}
 
-def get_credentials():
-	return {
-		"url" : "https://eu-de.ml.cloud.ibm.com",
-		"apikey" : "03cq5h-rKLfS3kdJcdLNq95jnCgqSVeZwmMtS0rtn_or"
-	}
-model_id = "sdaia/allam-1-13b-instruct"
-project_id = "c7f6c5ed-b85a-45a0-8983-28d25590308f"
-
-parameters = {
-    "decoding_method": "greedy",
-    "max_new_tokens": 900,
-    "repetition_penalty": 1
-}
-# pip install ibm-watsonx-ai
-from ibm_watsonx_ai.foundation_models import Model
-
-model = Model(
-	model_id = model_id,
-	params = parameters,
-	credentials = get_credentials(),
-	project_id = project_id,
-	# space_id = space_id
-	)
-
-# @app.on_event("startup")
-# async def startup_event():
-#     # print("Starting up FastAPI application...")
-    
-    
-    
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=APPLICATION_PORT)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,70 +1,46 @@
-# Getting Started with Create React App
+# Project Overview
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is designed to provide a conversational interface that leverages ALLaM to allow users to explore and understand Arabic poetry, specifically focusing on the traditional form of "Al-`Arḍah" (العرضة). 
 
-## Available Scripts
 
-In the project directory, you can run:
+# Key Features
 
-### `npm start`
+1. **Poetry Search and Explanation**: Users can search for specific poems or ask questions about poetry, and the application will provide relevant results along with explanations and meanings.
+2. **Conversational Interface**: The application offers a chat-like interface for users to interact with the system, making it easy to ask questions and receive answers in a conversational manner.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+# Technologies Used
 
-### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `npm run build`
+1. **Allam Model by Sdaia**: The application utilizes the Allam model by Sdaia for advanced natural language processing capabilities, specifically tailored for Arabic language.
+2. **FastAPI**: The application is built using FastAPI, a modern, fast (high-performance), web framework for building APIs with Python 3.7+ based on standard Python type hints.
+3. **Qdrant**: Qdrant is used for vector search and indexing of poetry documents, enabling efficient and accurate search capabilities.
+4. **Meilisearch**: Meilisearch is employed for full-text search and filtering of poetry documents, providing a robust search functionality.
+5. **Sentence Transformers**: Sentence Transformers are used for generating embeddings of poetry texts, facilitating semantic search and analysis.
+6. **Transformers**: The application leverages pre-trained transformer models for sequence classification and generation tasks, such as reranking.
+7. **IBM Watson**: IBM Watson's AI foundation models are utilized for generating human-like text explanations and insights about the poetry.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# How to Use
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+To run the application, follow these steps:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. **Run the backend**: Execute the following command in your terminal to start the backend server:
+   ```
+   uvicorn app:app --host 0.0.0.0 --port 8000
+   ```
+   This will start the FastAPI server on `http://localhost:8000`.
 
-### `npm run eject`
+2. **Start the frontend**: Navigate to the frontend directory and run the following command to start the React application:
+   ```
+   npm start
+   ```
+   This will start the React application on `http://localhost:3000`.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Once both the backend and frontend are running, you can interact with the application by visiting `http://localhost:3000` in your web browser.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+# License
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project is licensed under the Apache License 2.0.

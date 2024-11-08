@@ -1,3 +1,6 @@
+from contextlib import asynccontextmanager
+from os import getenv
+import ngrok
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -9,9 +12,40 @@ from sentence_transformers import SentenceTransformer
 import meilisearch
 import pandas as pd
 from transformers import AutoModelForSequenceClassification
+from pyngrok import ngrok
+# import ngrok
+from loguru import logger
 
-app = FastAPI()
 
+
+NGROK_AUTH_TOKEN = "2oZMuTVrnzCKkljMQTzTYsa8h5i_6ZRYAREwsv7BVnxVHrMqQ"
+APPLICATION_PORT = 8000
+NGROK_TIMEOUT = 30  # Add timeout setting
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        logger.info("Setting up Ngrok Tunnel")
+        ngrok.set_auth_token(NGROK_AUTH_TOKEN)
+        tunnel = ngrok.connect(
+            addr=APPLICATION_PORT,
+            proto="http",
+            bind_tls=True  # Force HTTPS
+        )
+        logger.info(f"Ngrok tunnel established at: {tunnel.url()}")
+    except Exception as e:
+        logger.error(f"Failed to establish ngrok tunnel: {e}")
+        logger.warning("Continuing without ngrok tunnel")
+    
+    yield
+    
+    try:
+        logger.info("Tearing Down Ngrok Tunnel")
+        ngrok.disconnect()
+    except Exception as e:
+        logger.error(f"Error disconnecting ngrok: {e}")
+
+app = FastAPI(lifespan=lifespan)
 
 # api: 3727c3c6c33d7a843a9d02c6152df6fed8c71dcd18692da49b3bda3610ffbf4c
 client = meilisearch.Client('https://ms-4a119447407f-14957.fra.meilisearch.io', '53757b109142eced370db575ea272954dceebabb', timeout=10)
@@ -144,7 +178,7 @@ def response_to_user(question):
     scores = reranker_model.compute_score(sentence_pairs, max_length=1024)
     print("scores",scores)
     # Check if none of the scores are higher than 0.4
-    if all(score <= 0.4 for score in scores):
+    if all(score <= 0.2 for score in scores):
         return """شعر العرضة هو فن أدائي تقليدي من المملكة العربية السعودية، يتميز بإيقاعاته الحماسية وكلماته القوية. يعتبر شعر العرضة جزءاً هاماً من التراث الشعبي السعودي ويعكس تاريخ وثقافة المملكة.
 
                   يبدو أنه لم يتم توفير بيت شعري من العرضة محدد للشرح. إذا كنت ترغب في شرح بيت شعري معين، يرجى تزويدي بالبيت الشعري وسأقوم بشرحه لك بالتفصيل.
@@ -226,4 +260,4 @@ model = Model(
     
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=APPLICATION_PORT)

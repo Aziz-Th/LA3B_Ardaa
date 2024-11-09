@@ -1,11 +1,11 @@
 # Project Overview
 
-This project is designed to provide a conversational interface that leverages ALLaM to allow users to explore and understand Arabic poetry, specifically focusing on the traditional form of "Al-`Arḍah" (العرضة). 
+This project is designed to provide a conversational interface that leverages ALLaM to allow users to explore and understand traditional Arabic poetry called "Al-`Arḍah" (العرضة). 
 
 
 # Key Features
 
-1. **Poetry Search and Explanation**: Users can search for specific poems or ask questions about poetry, and the application will provide relevant results along with explanations and meanings.
+1. **Poetry Search and Explanation**: Users can search for specific poems or ask questions about Al-`Arḍah, and the application will provide relevant results along with explanations and meanings.
 2. **Conversational Interface**: The application offers a chat-like interface for users to interact with the system, making it easy to ask questions and receive answers in a conversational manner.
 
 
@@ -27,7 +27,7 @@ To run the application, follow these steps:
 
 1. **Run the backend**: Execute the following command in your terminal to start the backend server:
    ```
-   uvicorn app:app --host 0.0.0.0 --port 8000
+   python app.py
    ```
    This will start the FastAPI server on `http://localhost:8000`.
 

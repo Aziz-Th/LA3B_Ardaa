@@ -1,4 +1,4 @@
-![Demo of the Project](demo.gif)
+![allam](https://github.com/user-attachments/assets/6b4cc8f5-ea12-4328-9c7a-436a0889796c)
 
 
 # Project Overview

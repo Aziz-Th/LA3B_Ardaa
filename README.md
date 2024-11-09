@@ -1,4 +1,4 @@
-![App demonstration](demo.gif)
+![Demo of the Project](demo.gif)
 
 
 # Project Overview

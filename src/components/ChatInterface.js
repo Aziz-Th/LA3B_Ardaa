@@ -37,7 +37,7 @@ function ChatInterface() {
       } catch (error) {
         console.error('Error:', error);
         setMessages(prev => [...prev, { 
-          text: 'Sorry, there was an error processing your request.', 
+          text: 'عذراً، هناك مشكلة في الاتصال بـعلام ', 
           user: false 
         }]);
       } finally {

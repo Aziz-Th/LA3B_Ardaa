@@ -20,6 +20,7 @@ This project is designed to provide a conversational interface that leverages AL
 5. **Sentence Transformers**: Sentence Transformers are used for generating embeddings of poetry texts, facilitating semantic search and analysis.
 6. **Transformers**: The application leverages pre-trained transformer models for sequence classification and generation tasks, such as reranking.
 7. **IBM Watson**: IBM Watson's AI foundation models are utilized for generating human-like text explanations and insights about the poetry.
+8. **Semantic Search**: The application incorporates semantic search capabilities, allowing users to search for poems based on their meaning and context, rather than just keywords. This is achieved through the use of advanced NLP techniques and vector embeddings.
 
 # How to Use
 
@@ -36,6 +37,23 @@ To run the application, follow these steps:
    npm start
    ```
    This will start the React application on `http://localhost:3000`.
+
+
+
+ **You need to have**: in order to be able to run the repo you need these key:
+
+3. **Environment Variables**: The application requires the following environment variables to be set in a .env file in the root directory:
+   - `IBM_CLOUD_URL`: The URL for the IBM Cloud service.
+   - `IBM_CLOUD_APIKEY`: The API key for the IBM Cloud service.
+   - `MEILI_URL`: The URL for the Meilisearch service.
+   - `MEILI_API_KEY`: The API key for the Meilisearch service.
+   - `QDRANT_URL`: The URL for the Qdrant service.
+   - `QDRANT_API_KEY`: The API key for the Qdrant service.
+   - `REACT_APP_API_URL`: The URL for the backend API.
+
+  
+
+
 
 Once both the backend and frontend are running, you can interact with the application by visiting `http://localhost:3000` in your web browser.
 
